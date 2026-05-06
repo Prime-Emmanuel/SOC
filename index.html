@@ -1,0 +1,797 @@
+<!DOCTYPE html> 
+<html lang="fr"> 
+<head> 
+  <meta charset="UTF-8" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+  <title>SOCOICAM - Quincaillerie</title> 
+  <!-- Google Fonts --> 
+  <link rel="preconnect" href="https://fonts.googleapis.com" /> 
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /> 
+  <link 
+href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grote sk:wght@400;500;600;700&display=swap" rel="stylesheet" /> 
+  <!-- Tailwind CSS CDN with custom config --> 
+  <script>     tailwind.config = {       theme: {         extend: {           colors: { 
+            'hardware-black': '#0f172a', 
+            'hardware-slate': '#334155', 
+            'hardware-orange': '#f97316', 
+            'hardware-orange-hover': '#ea580c', 
+            'hardware-gray': '#f1f5f9', 
+          }, 
+          fontFamily: { 
+            'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'], 
+            'display': ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'], 
+          } 
+        } 
+      } 
+    } 
+  </script> 
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <!-- Base styles mirroring the original CSS --> 
+  <style>     body {       font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;       background-color: #f1f5f9;       color: #0f172a; 
+    } 
+    h1, h2, h3, h4, h5, h6 {       font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; 
+    } 
+    /* Simple custom scrollbar */ 
+    ::-webkit-scrollbar { width: 6px; } 
+    ::-webkit-scrollbar-track { background: #f1f5f9; } 
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; } 
+  </style> 
+</head> 
+<body class="bg-hardware-gray text-hardware-black antialiased"> 
+  <div id="root"></div> 
+ 
+  <!-- Dependencies: React, ReactDOM, React Router, Framer Motion, Lucide icons --> 
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script> 
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script> 
+  <script src="https://unpkg.com/react-router-dom@6/umd/react-routerdom.development.js"></script> 
+  <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script> 
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script> 
+  <!-- Babel for JSX transpilation --> 
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script> 
+ 
+  <!-- Main application script --> 
+  <script type="text/babel" data-presets="react">     const { useEffect, useState, createContext, useContext, useMemo } = React;     const { createRoot } = ReactDOM;     const { HashRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;     const { motion } = window.framerMotion; 
+ 
+    // ======================== 
+    // Cart Context 
+    // ========================     const CartContext = createContext(); 
+ 
+    const CartProvider = ({ children }) => {       const [items, setItems] = useState([]);       const [isCartOpen, setIsCartOpen] = useState(false); 
+ 
+      const addToCart = (product) => {         setItems(prev => {           const existing = prev.find(item => item.id === product.id); 
+          if (existing) { 
+            return prev.map(item =>               item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item 
+            ); 
+          } 
+          return [...prev, { ...product, quantity: 1 }]; 
+        }); 
+        setIsCartOpen(true); // open drawer when adding 
+      }; 
+ 
+      const updateQuantity = (id, quantity) => { 
+        if (quantity <= 0) {           removeFromCart(id);           return; 
+        } 
+        setItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item)); 
+      }; 
+ 
+      const removeFromCart = (id) => {         setItems(prev => prev.filter(item => item.id !== id)); 
+      }; 
+ 
+      const clearCart = () => setItems([]); 
+ 
+      const cartTotal = useMemo(() => {         return items.reduce((sum, item) => sum + item.price * item.quantity, 0); 
+      }, [items]); 
+ 
+      const openCart = () => setIsCartOpen(true);       const closeCart = () => setIsCartOpen(false); 
+ 
+      return ( 
+        <CartContext.Provider value={{           items, addToCart, updateQuantity, removeFromCart, clearCart, 
+          cartTotal, isCartOpen, openCart, closeCart, itemsCount: items.reduce((count, item) => count + item.quantity, 0) 
+        }}> 
+          {children} 
+        </CartContext.Provider> 
+      ); 
+    }; 
+ 
+    const useCart = () => useContext(CartContext); 
+ 
+    // ======================== 
+    // ScrollToTop Component     // ======================== 
+    const ScrollToTop = () => {       const { pathname } = useLocation();       useEffect(() => { window.scrollTo(0, 0); }, [pathname]);       return null; 
+    }; 
+ 
+    // ======================== 
+    // Navbar Component 
+    // ======================== 
+    const Navbar = () => {       const { itemsCount, openCart } = useCart();       const [mobileOpen, setMobileOpen] = useState(false);       const location = useLocation(); 
+ 
+      return ( 
+        <nav className="bg-hardware-black text-white sticky top-0 z-50 shadow-lg"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <div className="flex items-center justify-between h-16"> 
+              {/* Logo */} 
+              <Link to="/" className="flex items-center gap-2"> 
+                <div className="font-display font-bold text-2xl uppercase tracking-wide"> 
+                  <span className="text-hardware-orange">SOCO</span>ICAM 
+                </div> 
+              </Link> 
+               
+              {/* Desktop menu */} 
+              <div className="hidden md:flex items-center gap-8"> 
+                <NavLink to="/" active={location.pathname === '/'}>Accueil</NavLink>                 <NavLink to="/boutique" active={location.pathname === '/boutique'}>Boutique</NavLink> 
+                <NavLink to="/services" active={location.pathname === '/services'}>Services</NavLink> 
+                <NavLink to="/contact" active={location.pathname === '/contact'}>Contact</NavLink> 
+              </div> 
+ 
+              {/* Right side */} 
+              <div className="flex items-center gap-4"> 
+                <button                   onClick={openCart}                   className="relative p-2 hover:bg-white/10 rounded-full transition-colors" 
+                  aria-label="Panier" 
+                > 
+                  <i data-lucide="shopping-bag" className="w-6 h-6"></i> 
+                  {itemsCount > 0 && ( 
+                    <span className="absolute -top-1 -right-1 bg-hardware-orange text-white text-xs fontbold w-5 h-5 flex items-center justify-center rounded-full"> 
+                      {itemsCount} 
+                    </span> 
+                  )} 
+                </button> 
+                {/* Mobile menu button */} 
+                <button 
+                  className="md:hidden p-2 hover:bg-white/10 rounded-full"                   onClick={() => setMobileOpen(!mobileOpen)} 
+                > 
+                  <i data-lucide={mobileOpen ? "x" : "menu"} className="w-6 h-6"></i> 
+                </button> 
+              </div> 
+            </div> 
+ 
+            {/* Mobile menu */} 
+            {mobileOpen && ( 
+              <div className="md:hidden pb-4 border-t border-white/10 pt-4 space-y-2"> 
+                <MobileNavLink to="/" onClick={() => setMobileOpen(false)}>Accueil</MobileNavLink> 
+                <MobileNavLink to="/boutique" onClick={() => setMobileOpen(false)}>Boutique</MobileNavLink> 
+                <MobileNavLink to="/services" onClick={() => setMobileOpen(false)}>Services</MobileNavLink> 
+                <MobileNavLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileNavLink> 
+              </div> 
+            )} 
+          </div> 
+        </nav> 
+      ); 
+    }; 
+ 
+    const NavLink = ({ to, active, children }) => ( 
+      <Link         to={to} 
+        className={`text-sm font-bold uppercase tracking-wider px-2 py-1 border-b-2 transition-colors 
+${ 
+          active ? 'border-hardware-orange text-white' : 'border-transparent text-gray-300 hover:textwhite' 
+        }`} 
+      > 
+        {children} 
+      </Link> 
+    ); 
+ 
+    const MobileNavLink = ({ to, onClick, children }) => ( 
+      <Link         to={to}         onClick={onClick}         className="block px-4 py-3 text-gray-300 hover:bg-white/5 rounded-lg font-semibold uppercase tracking-wide" 
+      > 
+        {children} 
+      </Link> 
+    ); 
+ 
+    // ======================== 
+    // Footer Component 
+    // ======================== 
+    const Footer = () => ( 
+      <footer className="bg-hardware-black text-gray-300 py-12 mt-auto"> 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8"> 
+          <div> 
+            <h4 className="font-display font-bold text-white text-xl mb-4">SOCOICAM</h4> 
+            <p className="text-sm">Votre partenaire quincaillerie à Yaoundé pour tous vos projets de construction, rénovation et entretien.</p> 
+          </div> 
+          <div> 
+            <h4 className="font-display font-bold text-white text-lg mb-4 uppercase">Liens rapides</h4> 
+            <ul className="space-y-2 text-sm"> 
+              <li><Link to="/boutique" className="hover:text-hardware-orange transitioncolors">Boutique</Link></li> 
+              <li><Link to="/services" className="hover:text-hardware-orange transition-colors">Nos services</Link></li> 
+              <li><Link to="/contact" className="hover:text-hardware-orange transitioncolors">Contact</Link></li> 
+            </ul> 
+          </div> 
+          <div> 
+            <h4 className="font-display font-bold text-white text-lg mb-4 uppercase">Contact</h4> 
+            <ul className="space-y-2 text-sm"> 
+              <li className="flex items-center gap-2"><i data-lucide="phone" className="w-4 h-4 texthardware-orange"></i> 652 557 791</li> 
+              <li className="flex items-center gap-2"><i data-lucide="mail" className="w-4 h-4 texthardware-orange"></i> contact@socoicam.cm</li> 
+              <li className="flex items-center gap-2"><i data-lucide="map-pin" className="w-4 h-4 texthardware-orange"></i> Yaoundé, Cameroun</li> 
+            </ul> 
+          </div> 
+        </div> 
+        <div className="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-white/10 text-center textxs text-gray-500"> 
+          © {new Date().getFullYear()} SOCOICAM. Tous droits réservés. 
+        </div> 
+      </footer> 
+    ); 
+ 
+    // ======================== 
+    // Cart Drawer Component     // ======================== 
+    const CartDrawer = () => {       const { isCartOpen, closeCart, items, updateQuantity, removeFromCart, cartTotal } = useCart();       const navigate = useNavigate(); 
+ 
+      return ( 
+        <> 
+          {/* Overlay */} 
+          {isCartOpen && ( 
+            <div 
+              className="fixed inset-0 bg-black/50 z-50 transition-opacity"               onClick={closeCart} 
+            ></div> 
+          )} 
+          {/* Drawer */}           <motion.div             initial={{ x: '100%' }} 
+            animate={{ x: isCartOpen ? 0 : '100%' }}             transition={{ type: 'tween', duration: 0.3 }}             className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col" 
+          > 
+            <div className="flex items-center justify-between p-6 border-b"> 
+              <h2 className="text-2xl font-display font-bold uppercase">Votre panier</h2>               <button onClick={closeCart} className="p-2 hover:bg-gray-100 rounded-full"> 
+                <i data-lucide="x" className="w-6 h-6"></i> 
+              </button> 
+            </div> 
+ 
+            <div className="flex-1 overflow-y-auto p-6 space-y-4"> 
+              {items.length === 0 ? ( 
+                <div className="text-center text-gray-500 mt-20"> 
+                  <i data-lucide="shopping-bag" className="w-16 h-16 mx-auto mb-4 text-gray-300"></i>                   <p className="text-lg">Votre panier est vide</p> 
+                </div> 
+              ) : ( 
+                items.map(item => ( 
+                  <div key={item.id} className="flex gap-4 items-center border-b pb-4"> 
+                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover bg-gray-100" 
+/> 
+                    <div className="flex-1"> 
+                      <p className="font-semibold text-sm">{item.name}</p> 
+                      <p className="text-xs text-gray-500">{item.ref}</p> 
+                      <div className="flex items-center justify-between mt-2"> 
+                        <div className="flex items-center border"> 
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:bg-gray-100"> 
+                            <i data-lucide="minus" className="w-3 h-3"></i> 
+                          </button> 
+                          <span className="w-8 text-center text-sm">{item.quantity}</span> 
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:bg-gray-100"> 
+                            <i data-lucide="plus" className="w-3 h-3"></i> 
+                          </button> 
+                        </div> 
+                        <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1"> 
+                          <i data-lucide="trash-2" className="w-4 h-4"></i> 
+                        </button> 
+                      </div> 
+                    </div> 
+                    <div className="font-bold text-sm text-hardware-orange"> 
+                      {(item.price * item.quantity).toLocaleString('fr-FR')} FCFA 
+                    </div> 
+                  </div> 
+                )) 
+              )} 
+            </div> 
+ 
+            {items.length > 0 && ( 
+              <div className="p-6 border-t"> 
+                <div className="flex justify-between mb-4"> 
+                  <span className="font-bold uppercase">Total</span> 
+                  <span className="font-display font-bold text-xl">{cartTotal.toLocaleString('fr-FR')} FCFA</span> 
+                </div> 
+                <button                   onClick={() => { closeCart(); navigate('/panier'); }} 
+                  className="w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white fontbold uppercase py-3 tracking-wider transition-colors" 
+                > 
+                  Voir le panier 
+                </button> 
+              </div> 
+            )} 
+          </motion.div> 
+        </> 
+      ); 
+    }; 
+ 
+    // ======================== 
+    // Home Page 
+    // ======================== 
+    const Home = () => {       const navigate = useNavigate(); 
+      return ( 
+        <div className="bg-hardware-gray"> 
+          {/* Hero */} 
+          <section className="bg-hardware-black text-white py-20 md:py-28"> 
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+              <motion.div                 initial={{ opacity: 0, y: 30 }}                 animate={{ opacity: 1, y: 0 }}                 transition={{ duration: 0.8 }}                 className="max-w-3xl" 
+              > 
+                <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb6"> 
+                  Votre <span className="text-hardware-orange">quincaillerie</span> de référence à Yaoundé 
+                </h1> 
+                <p className="text-lg text-gray-300 mb-8 leading-relaxed"> 
+                  Outillage professionnel, matériaux de construction, visserie, services de découpe et reproduction de clés. Tout ce qu'il vous faut pour vos projets. 
+                </p> 
+                <div className="flex flex-wrap gap-4"> 
+                  <button 
+                    onClick={() => navigate('/boutique')} 
+                    className="bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors" 
+                  > 
+                    Voir le catalogue 
+                  </button>                   <button                     onClick={() => navigate('/contact')} 
+                    className="border-2 border-hardware-orange text-hardware-orange hover:bghardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors" 
+                  > 
+                    Nous contacter 
+                  </button> 
+                </div> 
+              </motion.div> 
+            </div> 
+          </section> 
+ 
+          {/* Features strip */} 
+          <section className="bg-hardware-slate text-white py-12"> 
+            <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8"> 
+              <div className="flex items-center gap-4"> 
+                <i data-lucide="truck" className="w-10 h-10 text-hardware-orange"></i> 
+                <div> 
+                  <h3 className="font-display font-bold uppercase">Retrait en magasin</h3> 
+                  <p className="text-sm text-gray-300">Commandez en ligne, récupérez sur place</p> 
+                </div> 
+              </div> 
+              <div className="flex items-center gap-4"> 
+                <i data-lucide="scissors" className="w-10 h-10 text-hardware-orange"></i> 
+                <div> 
+                  <h3 className="font-display font-bold uppercase">Découpe sur mesure</h3> 
+                  <p className="text-sm text-gray-300">Bois, métal, plexiglas au millimètre</p> 
+                </div> 
+              </div> 
+              <div className="flex items-center gap-4"> 
+                <i data-lucide="key" className="w-10 h-10 text-hardware-orange"></i> 
+                <div> 
+                  <h3 className="font-display font-bold uppercase">Reproduction de clés</h3> 
+                  <p className="text-sm text-gray-300">Service minute pour tous types de clés</p> 
+                </div> 
+              </div> 
+            </div> 
+          </section> 
+ 
+          {/* Categories quick links */} 
+          <section className="py-20"> 
+            <div className="max-w-7xl mx-auto px-4"> 
+              <h2 className="text-3xl font-display font-bold uppercase mb-12 text-center">Nos rayons phares</h2> 
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6"> 
+                {['Électroportatif', 'Outillage à main', 'Visserie & Fixation', 'Matériaux'].map(cat => ( 
+                  <button                     key={cat}                     onClick={() => navigate('/boutique')} 
+                    className="bg-white p-6 border border-gray-200 hover:shadow-md transition-shadow group" 
+                  > 
+                    <div className="text-2xl font-display font-bold uppercase mb-2 group-hover:texthardware-orange transition-colors">{cat}</div> 
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">Explorer →</p> 
+                  </button> 
+                ))} 
+              </div> 
+            </div> 
+          </section> 
+        </div> 
+      ); 
+    }; 
+ 
+    // ======================== 
+    // Store Page (adapted from provided code) 
+    // ========================     const MOCK_PRODUCTS = [ 
+      { id: 1, name: "Perceuse visseuse 18V XR", category: "Électroportatif", brand: "DeWalt", ref: "DCD791D2-QW", price: 125000, image: "https://images.unsplash.com/photo-1504148455328c376907d081c?auto=format&fit=crop&q=80&w=400&h=300", isNew: true }, 
+      { id: 2, name: "Meuleuse angulaire 125mm", category: "Électroportatif", brand: "Makita", ref: 
+"9558HNRG", price: 45000, image: "https://images.unsplash.com/photo-15343980795437ae6d016b86a?auto=format&fit=crop&q=80&w=400&h=300", isNew: false }, 
+      { id: 3, name: "Vis à bois aggloméré 4x40 (Boîte 200)", category: "Visserie", brand: "Spax", ref: 
+"VSA-440", price: 3500, image: "https://images.unsplash.com/photo-1581147036324c175b6a7a00f?auto=format&fit=crop&q=80&w=400&h=300", isNew: false }, 
+      { id: 4, name: "Mètre ruban acier 8m", category: "Mesure", brand: "Facom", ref: "FMHT0-33868", 
+price: 8500, image: "https://images.unsplash.com/photo-1503387762592deb58ef4e?auto=format&fit=crop&q=80&w=400&h=300", isNew: false }, 
+      { id: 5, name: "Caisse à outils PRO 65 pièces", category: "Outillage à main", brand: "Stanley", ref: "STMT71651", price: 85000, image: "https://images.unsplash.com/photo-1586864387967d02ef85d93e8?auto=format&fit=crop&q=80&w=400&h=300", isNew: false }, 
+      { id: 6, name: "Mastic silicone sanitaire transparent", category: "Matériaux", brand: "Rubson", ref: "SIL-SAN-T", price: 4500, image: "https://images.unsplash.com/photo-158565972298338ca84b518d6?auto=format&fit=crop&q=80&w=400&h=300", isNew: false }, 
+    ]; 
+ 
+    const CATEGORIES = ["Tous", "Électroportatif", "Outillage à main", "Visserie", "Mesure", "Matériaux"]; 
+ 
+    const Store = () => {       const [searchTerm, setSearchTerm] = useState('');       const [selectedCategory, setSelectedCategory] = useState('Tous');       const { addToCart } = useCart(); 
+ 
+      const filtered = MOCK_PRODUCTS.filter(p => {         const s = searchTerm.toLowerCase();         return (p.name.toLowerCase().includes(s) || p.ref.toLowerCase().includes(s)) &&           (selectedCategory === 'Tous' || p.category === selectedCategory); 
+      }); 
+ 
+      return ( 
+        <div className="bg-hardware-gray min-h-screen py-12"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <div className="mb-12"> 
+              <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight mb-4">Catalogue Produits</h1> 
+              <p className="text-gray-600 max-w-2xl">Retrouvez ici un aperçu de nos références disponibles en magasin. Ajoutez-les à votre panier pour commander.</p> 
+            </div> 
+ 
+            <div className="flex flex-col lg:flex-row gap-8 items-start"> 
+              <aside className="w-full lg:w-64 shrink-0 space-y-8"> 
+                <div className="bg-white p-6 border border-gray-200"> 
+                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2"> 
+                    <i data-lucide="search" className="w-4 h-4"></i> Recherche 
+                  </h3> 
+                  <input 
+                    type="text" 
+                    placeholder="Réf. ou nom..."                     value={searchTerm}                     onChange={e => setSearchTerm(e.target.value)} 
+                    className="w-full border border-gray-300 p-3 text-sm focus:outline-none focus:borderhardware-orange font-mono" 
+                  /> 
+                </div> 
+                <div className="bg-white p-6 border border-gray-200"> 
+                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2"> 
+                    <i data-lucide="filter" className="w-4 h-4"></i> Catégories 
+                  </h3> 
+                  <ul className="space-y-2"> 
+                    {CATEGORIES.map(cat => ( 
+                      <li key={cat}>                         <button                           onClick={() => setSelectedCategory(cat)}                           className={`text-sm w-full text-left py-2 px-3 border-l-2 transition-colors ${                             selectedCategory === cat 
+                              ? 'border-hardware-orange bg-orange-50 font-semibold text-hardware-orange'                               : 'border-transparent hover:bg-gray-50 text-gray-600' 
+                          }`} 
+                        >{cat}</button> 
+                      </li> 
+                    ))} 
+                  </ul> 
+                </div> 
+                <div className="bg-hardware-slate text-white p-6 relative overflow-hidden"> 
+                  <div className="absolute top-0 right-0 p-4 opacity-10"> 
+                    <i data-lucide="phone" className="w-24 h-24"></i> 
+                  </div> 
+                  <h3 className="font-display font-bold uppercase mb-2 relative z-10">Assistance</h3> 
+                  <p className="text-gray-300 text-sm mb-4 relative z-10">Besoin de conseil ? Appeleznous au 652557791.</p> 
+                  <Link to="/contact" className="inline-block bg-hardware-orange hover:bg-hardwareorange-hover text-white text-sm font-bold uppercase px-4 py-2 relative z-10 transition-colors">Nous contacter</Link> 
+                </div> 
+              </aside> 
+ 
+              <main className="flex-1 w-full"> 
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"> 
+                  {filtered.length > 0 ? (                     filtered.map(product => ( 
+                      <motion.div layout key={product.id} className="bg-white group overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative"> 
+                        {product.isNew && ( 
+                          <span className="absolute top-4 right-4 z-10 bg-hardware-orange text-white text-
+[10px] uppercase font-bold px-2 py-1">Nouveau</span> 
+                        )} 
+                        <div className="relative h-48 overflow-hidden bg-gray-100 p-4 flex items-center justify-center"> 
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> 
+                          <div className="absolute top-4 left-4 bg-hardware-black/80 text-white text-xs fontbold uppercase tracking-wider px-2 py-1">{product.brand}</div> 
+                        </div> 
+                        <div className="p-5 flex flex-col flex-grow"> 
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb1">{product.category}</p> 
+                          <h4 className="font-bold text-hardware-black group-hover:text-hardware-orange transition-colors mb-2">{product.name}</h4> 
+                          <p className="font-mono text-xs text-gray-500 mb-4">Réf: {product.ref}</p> 
+                          <div className="mt-auto flex items-end justify-between"> 
+                            <div className="font-display font-bold text-xl">{product.price.toLocaleString('frFR')} FCFA</div> 
+                            <button onClick={() => addToCart(product)} className="bg-hardware-orange hover:bg-hardware-orange-hover text-white p-3 rounded-sm transition-colors"> 
+                              <i data-lucide="shopping-cart" className="w-5 h-5"></i> 
+                            </button> 
+                          </div> 
+                        </div> 
+                      </motion.div> 
+                    )) 
+                  ) : ( 
+                    <div className="col-span-full bg-white p-12 text-center border border-gray-200"> 
+                      <p className="text-gray-500 text-lg">Aucun article trouvé.</p> 
+                      <button onClick={() => { setSearchTerm(''); setSelectedCategory('Tous'); }} className="mt-4 text-hardware-orange font-semibold hover:underline">Réinitialiser les filtres</button> 
+                    </div> 
+                  )} 
+                </div> 
+              </main> 
+            </div> 
+          </div> 
+        </div> 
+      ); 
+    }; 
+ 
+    // ======================== 
+    // Services Page (adapted from provided code) 
+    // ========================     const SERVICES = [ 
+      { id: 1, title: "Découpe sur mesure", description: "Bois, panneaux, MDF, plexiglas et métal. 
+Découpe au millimètre dans notre atelier.", icon: "ruler", features: ["Précision millimétrique", "Gain de temps", "Tous types de bois"], image: "https://images.unsplash.com/photo-1534354228db62423ba213?auto=format&fit=crop&q=80&w=800&h=500" }, 
+      { id: 2, title: "Reproduction de clés", description: "Service minute pour clés plates, à gorge et de sécurité. Badges Vigik disponibles.", icon: "key", features: ["Service express", "Clés de sécurité", 
+"Badges d'accès"], image: "https://images.unsplash.com/photo-1582139329536e7284fece509?auto=format&fit=crop&q=80&w=800&h=500" }, 
+      { id: 3, title: "Location de matériel", description: "Perceuse, burineur, ponceuse, nettoyeur HP. À la demi-journée ou journée.", icon: "zap", features: ["Matériel entretenu", "Tarifs dégressifs", "Conseils d'utilisation"], image: "https://images.unsplash.com/photo-1504148455328c376907d081c?auto=format&fit=crop&q=80&w=800&h=500" }, 
+      { id: 4, title: "Service après-vente", description: "Réparation et entretien d'outillage électroportatif grandes marques.", icon: "hammer", features: ["Diagnostic rapide", "Pièces d'origine", "Devis gratuit"], image: "https://images.unsplash.com/photo-1590958999905aeed49ef07ff?auto=format&fit=crop&q=80&w=800&h=500" } 
+    ]; 
+ 
+    const Services = () => ( 
+      <div className="bg-hardware-gray min-h-screen"> 
+        <section className="bg-hardware-slate text-white py-20 border-b-8 border-hardwareorange"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb-6"> 
+              Bien plus qu'un <br/><span className="text-hardware-orange">simple magasin.</span> 
+            </h1> 
+            <p className="text-xl text-gray-300 max-w-2xl font-light">Découvrez nos services en atelier pour faciliter vos chantiers.</p> 
+          </div> 
+        </section> 
+        <section className="py-24"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16"> 
+            {SERVICES.map((service, index) => ( 
+              <div key={service.id} className={`flex flex-col lg:flex-row gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}> 
+                <div className="flex-1 w-full relative"> 
+                  <div className="aspect-video bg-gray-200 relative group overflow-hidden"> 
+                    <div className="absolute inset-0 flex items-center justify-center text-hardware-orange opacity-20 group-hover:scale-110 transition-transform duration-700"> 
+                      <i data-lucide={service.icon} className="w-12 h-12"></i> 
+                    </div> 
+                    <img src={service.image} alt={service.title} className="w-full h-full object-cover mixblend-multiply opacity-80" /> 
+                    <div className="absolute inset-0 border border-black/10 pointer-events-none" /> 
+                  </div> 
+                  <div className="absolute -top-6 -left-6 font-display font-bold text-8xl text-hardwareorange opacity-20 pointer-events-none">0{service.id}</div> 
+                </div> 
+                <div className="flex-1 w-full space-y-6"> 
+                  <div className="inline-block px-3 py-1 bg-white border border-gray-200 text-xs font-bold uppercase tracking-widest text-hardware-slate">Service en magasin</div> 
+                  <h2 className="text-3xl md:text-4xl font-display font-bold text-hardware-black uppercase">{service.title}</h2> 
+                  <p className="text-lg text-gray-600 leading-relaxed">{service.description}</p> 
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200"> 
+                    {service.features.map((f, i) => ( 
+                      <li key={i} className="flex items-center gap-2"><span className="w-1.5 h-1.5 bghardware-orange rounded-full"></span><span className="text-sm font-semibold text-hardwareslate">{f}</span></li> 
+                    ))} 
+                  </ul> 
+                </div> 
+              </div> 
+            ))} 
+          </div> 
+        </section> 
+        <section className="bg-hardware-black text-white py-20 text-center"> 
+          <div className="max-w-3xl mx-auto px-4"> 
+            <h2 className="text-3xl font-display font-bold uppercase mb-6">Une demande spécifique ?</h2> 
+            <p className="text-gray-400 mb-8">Contactez-nous ou passez en magasin. Nos conseillers étudieront votre besoin.</p> 
+            <Link to="/contact" className="inline-block border-2 border-hardware-orange texthardware-orange hover:bg-hardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors">Nous contacter</Link> 
+          </div> 
+        </section> 
+      </div> 
+    ); 
+ 
+    // ======================== 
+    // Cart Page (adapted from provided code)     // ======================== 
+    const Cart = () => {       const { items, updateQuantity, removeFromCart, cartTotal } = useCart();       const navigate = useNavigate(); 
+ 
+      if (items.length === 0) {         return ( 
+          <div className="bg-hardware-gray min-h-[70vh] flex flex-col items-center justify-center p-4"> 
+            <div className="bg-white p-12 text-center max-w-lg border border-gray-200"> 
+              <i data-lucide="shopping-basket" className="w-16 h-16 text-gray-300 mx-auto mb-6"></i> 
+              <h2 className="text-3xl font-display font-bold uppercase mb-4">Votre panier est vide</h2> 
+              <p className="text-gray-500 mb-8">Explorez notre catalogue pour trouver ce qu'il vous faut.</p> 
+              <Link to="/boutique" className="inline-flex items-center gap-2 bg-hardware-orange textwhite px-8 py-4 font-bold uppercase tracking-widest hover:bg-hardware-orange-hover transitioncolors">Catalogue Produits</Link> 
+            </div> 
+          </div> 
+        ); 
+      } 
+ 
+      return ( 
+        <div className="bg-hardware-gray min-h-screen py-12"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <div className="mb-8"> 
+              <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm fontbold uppercase tracking-widest text-gray-500 hover:text-hardware-orange transition-colors mb-4">                 <i data-lucide="arrow-left" className="w-4 h-4"></i> Continuer vos achats               </button> 
+              <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight">Votre Panier</h1> 
+            </div> 
+            <div className="flex flex-col lg:flex-row gap-12 items-start"> 
+              <div className="w-full lg:flex-1 space-y-4"> 
+                {items.map(item => ( 
+                  <motion.div layout key={item.id} className="bg-white border border-gray-200 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"> 
+                    <div className="w-24 h-24 shrink-0 bg-gray-100 flex items-center justify-center p-2 hidden sm:flex"> 
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" /> 
+                    </div> 
+                    <div className="flex-1"> 
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb1">{item.brand}</p> 
+                      <h3 className="font-bold text-lg text-hardware-black mb-1">{item.name}</h3>                       <p className="font-mono text-xs text-gray-500">Réf: {item.ref}</p> 
+                    </div> 
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between wfull sm:w-auto gap-4"> 
+                      <div className="font-display font-bold text-xl text-hardware-black textright">{(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</div> 
+                      <div className="flex items-center gap-4"> 
+                        <div className="flex items-center border border-gray-300"> 
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-2 text-gray-500 hover:bg-gray-100"><i data-lucide="minus" className="w-4 h-4"></i></button>                           <span className="w-12 text-center font-bold font-mono">{item.quantity}</span> 
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-2 text-gray-500 hover:bg-gray-100"><i data-lucide="plus" className="w-4 h-4"></i></button> 
+                        </div> 
+                        <button onClick={() => removeFromCart(item.id)} className="p-2 text-red-500 hover:bg-red-50"><i data-lucide="trash-2" className="w-5 h-5"></i></button> 
+                      </div> 
+                    </div> 
+                  </motion.div> 
+                ))} 
+              </div> 
+              <aside className="w-full lg:w-[400px] shrink-0"> 
+                <div className="bg-hardware-black text-white p-8 sticky top-28"> 
+                  <h3 className="text-2xl font-display font-bold uppercase mb-6 border-b border-white/20 pb-4">Résumé</h3> 
+                  <div className="space-y-4 mb-8"> 
+                    <div className="flex justify-between text-gray-400"><span>Sous-total</span><span className="font-mono">{cartTotal.toLocaleString('fr-FR')} FCFA</span></div> 
+                    <div className="flex justify-between text-gray-400"><span>Frais de livraison</span><span>Calculés à l'étape suivante</span></div> 
+                  </div> 
+                  <div className="flex justify-between items-end border-t border-white/20 pt-6 mb-8"> 
+                    <span className="font-bold uppercase tracking-wider">Total estimé</span> 
+                    <span className="font-display font-bold text-3xl text-hardwareorange">{cartTotal.toLocaleString('fr-FR')} FCFA</span> 
+                  </div> 
+                  <Link to="/caisse" className="block w-full bg-hardware-orange hover:bg-hardwareorange-hover text-white text-center font-bold uppercase py-5 tracking-widest transition-colors mb4">Passer la commande</Link> 
+                  <p className="text-xs text-gray-500 text-center">Paiement sécurisé. Retrait en magasin possible.</p> 
+                </div> 
+              </aside> 
+            </div> 
+          </div> 
+        </div> 
+      ); 
+    }; 
+ 
+    // ======================== 
+    // Checkout Page (adapted from provided code) 
+    // ======================== 
+    const Checkout = () => {       const { items, cartTotal, clearCart } = useCart();       const navigate = useNavigate();       const [success, setSuccess] = useState(false); 
+ 
+      if (items.length === 0 && !success) {         navigate('/boutique');         return null; 
+      } 
+ 
+      const handleSubmit = (e) => { 
+        e.preventDefault();         clearCart();         setSuccess(true); 
+      }; 
+ 
+      if (success) {         return ( 
+          <div className="bg-hardware-gray min-h-[80vh] flex items-center justify-center py-12 px-4"> 
+            <div className="bg-white p-8 md:p-16 border border-gray-200 max-w-2xl text-center shadow-lg relative overflow-hidden"> 
+              <div className="absolute top-0 left-0 w-full h-2 bg-hardware-orange" /> 
+              <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8"> 
+                <i data-lucide="check" className="w-10 h-10"></i> 
+              </div> 
+              <h2 className="text-4xl font-display font-bold uppercase mb-4">Commande Validée !</h2> 
+              <p className="text-gray-600 mb-8 text-lg">Merci pour votre commande. Un conseiller SOCOICAM vous contactera très prochainement pour finaliser la livraison et le paiement.</p> 
+              <div className="bg-hardware-slate p-6 text-white mb-8 text-left"> 
+                <h3 className="font-bold uppercase tracking-wider mb-2">Prochaines Étapes</h3> 
+                <ul className="space-y-2 text-sm text-gray-300"> 
+                  <li>1. Validation des stocks en magasin</li> 
+                  <li>2. Appel de confirmation par notre service commercial</li> 
+                  <li>3. Paiement à la livraison ou retrait en magasin</li> 
+                </ul> 
+              </div> 
+              <Link to="/" className="inline-block bg-hardware-orange hover:bg-hardware-orange-hover text-white px-8 py-4 font-bold uppercase tracking-widest transition-colors">Retour à l'accueil</Link> 
+            </div> 
+          </div> 
+        ); 
+      } 
+ 
+      return ( 
+        <div className="bg-hardware-gray min-h-screen py-12"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <div className="mb-12"> 
+              <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight mb-4">Validation de Commande</h1> 
+            </div> 
+            <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-12 items-start"> 
+              <div className="w-full lg:flex-1 space-y-8"> 
+                <section className="bg-white p-6 md:p-8 border border-gray-200"> 
+                  <h2 className="text-2xl font-display font-bold uppercase mb-6 flex items-center gap3"><span className="w-8 h-8 rounded-full bg-hardware-slate text-white flex items-center justifycenter text-sm">1</span> Coordonnées</h2> 
+<div className="grid sm:grid-cols-2 gap-6"> 
+                    <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Prénom</label><input required type="text" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardwareorange" /></div> 
+                    <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Nom</label><input required type="text" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" /></div> 
+                    <div className="space-y-2 sm:col-span-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Email</label><input required type="email" className="wfull border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:borderhardware-orange" /></div> 
+                    <div className="space-y-2 sm:col-span-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Téléphone</label><input required type="tel" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Ex: 652557791" /></div> 
+                  </div> 
+                </section> 
+                <section className="bg-white p-6 md:p-8 border border-gray-200"> 
+                  <h2 className="text-2xl font-display font-bold uppercase mb-6 flex items-center gap3"><span className="w-8 h-8 rounded-full bg-hardware-slate text-white flex items-center justifycenter text-sm">2</span> Mise à disposition</h2> 
+                  <div className="grid gap-4"> 
+                    <label className="border-2 border-hardware-orange bg-orange-50 p-4 cursor-pointer flex items-start gap-4"> 
+                      <input type="radio" name="delivery" defaultChecked className="mt-1" /> 
+                      <div> 
+                        <div className="font-bold uppercase text-sm mb-1 flex items-center gap-2"><i datalucide="map-pin" className="w-4 h-4 text-hardware-orange"></i> Retrait au magasin</div> 
+                        <p className="text-sm text-gray-600">Yaoundé, Cameroun. Gratuit et disponible dès validation du stock.</p> 
+                      </div> 
+                    </label> 
+                    <label className="border border-gray-200 hover:border-gray-300 p-4 cursor-pointer flex items-start gap-4"> 
+                      <input type="radio" name="delivery" className="mt-1" disabled /> 
+                      <div> 
+                        <div className="font-bold uppercase text-sm mb-1 text-gray-400 flex items-center gap-2"><i data-lucide="truck" className="w-4 h-4"></i> Livraison à domicile (Sur devis uniquement)</div> 
+                        <p className="text-sm text-gray-500">Nos conseillers vous contacteront pour estimer les frais.</p> 
+                      </div> 
+                    </label> 
+                  </div> 
+                </section> 
+              </div> 
+              <aside className="w-full lg:w-[450px] shrink-0"> 
+                <div className="bg-hardware-black text-white p-8 sticky top-28"> 
+                  <h3 className="text-2xl font-display font-bold uppercase mb-6 border-b border-white/20 pb-4">Ma Commande</h3> 
+                  <div className="space-y-4 mb-8 max-h-64 overflow-y-auto pr-2"> 
+                    {items.map(item => ( 
+                      <div key={item.id} className="flex gap-4"> 
+                        <div className="w-16 h-16 bg-white p-1 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div> 
+                        <div className="flex-1"> 
+                          <h4 className="text-sm font-bold truncate">{item.name}</h4> 
+                          <p className="text-xs text-gray-400 mb-1">Qté: {item.quantity}</p> 
+                          <p className="font-mono text-hardware-orange font-bold text-sm">{(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</p> 
+                        </div> 
+                      </div> 
+                    ))} 
+                  </div> 
+                  <div className="flex justify-between items-end border-t border-white/20 pt-6 mb-8"> 
+                    <span className="font-bold uppercase tracking-wider text-xl">Total À Payer</span> 
+                    <span className="font-display font-bold text-3xl text-hardwareorange">{cartTotal.toLocaleString('fr-FR')} FCFA</span> 
+</div> 
+                  <button type="submit" className="flex items-center justify-center gap-2 w-full bghardware-orange hover:bg-hardware-orange-hover text-white text-center font-bold uppercase py-5 tracking-widest transition-colors mb-4"> 
+                    Confirmer la commande <i data-lucide="check" className="w-5 h-5"></i> 
+                  </button> 
+                  <div className="flex items-start gap-3 text-xs text-gray-400"> 
+                    <i data-lucide="shield-check" className="w-6 h-6 shrink-0 text-white"></i> 
+                    <p>Vos informations sont sécurisées. Le paiement sera effectué au moment du retrait de la marchandise.</p> 
+                  </div>                 </div> 
+              </aside> 
+            </form> 
+          </div> 
+        </div> 
+      ); 
+    }; 
+ 
+    // ======================== 
+    // Contact Page (adapted from provided code) 
+    // ======================== 
+    const Contact = () => ( 
+      <div className="bg-hardware-gray min-h-screen"> 
+        <section className="bg-hardware-black text-white py-16"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <h1 className="text-4xl md:text-5xl font-display font-bold uppercase tracking-tight mb4">Demander un devis <br className="hidden md:block"/> ou un renseignement</h1> 
+            <p className="text-gray-400 max-w-xl">Notre équipe est à votre disposition pour vous conseiller et répondre à vos demandes de prix sur notre matériel.</p> 
+          </div> 
+        </section> 
+        <section className="py-16"> 
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> 
+            <div className="grid lg:grid-cols-5 gap-12"> 
+              <div className="lg:col-span-3 bg-white p-8 border border-gray-200 shadow-sm"> 
+                <h2 className="text-2xl font-display font-bold uppercase mb-8 border-b-2 borderhardware-orange inline-block pb-2">Envoyer un message</h2> 
+                <form className="space-y-6"> 
+                  <div className="grid sm:grid-cols-2 gap-6"> 
+                    <div className="space-y-2"><label htmlFor="firstname" className="block text-xs fontbold uppercase tracking-wider text-gray-500">Prénom</label><input type="text" id="firstname" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Jean" /></div> 
+                    <div className="space-y-2"><label htmlFor="lastname" className="block text-xs fontbold uppercase tracking-wider text-gray-500">Nom</label><input type="text" id="lastname" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Dupont" /></div> 
+                  </div> 
+                  <div className="space-y-2"><label htmlFor="email" className="block text-xs font-bold 
+uppercase tracking-wider text-gray-500">Email</label><input type="email" id="email" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="jean.dupont@email.com" /></div> 
+                  <div className="space-y-2"> 
+                    <label htmlFor="subject" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Sujet</label> 
+                    <select id="subject" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bgwhite focus:outline-none focus:border-hardware-orange"> 
+                      <option>Demande de devis</option> 
+                      <option>Disponibilité d'un produit (Stock)</option> 
+                      <option>Informations sur un service</option> 
+                      <option>Autre</option> 
+                    </select> 
+                  </div> 
+                  <div className="space-y-2"><label htmlFor="message" className="block text-xs fontbold uppercase tracking-wider text-gray-500">Message</label><textarea id="message" rows={5} className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Précisez votre demande... (ex: réf produit, quantités)"></textarea></div> 
+<button type="button" onClick={(e) => { e.preventDefault(); alert("Ceci est un site vitrine / maquette. Le message n'est pas envoyé réel."); }} className="bg-hardware-black hover:bghardware-orange text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors w-full sm:w-auto">Envoyer ma demande</button> 
+                </form> 
+              </div> 
+              <div className="lg:col-span-2 space-y-8"> 
+                <div className="bg-hardware-slate text-white p-8"> 
+                  <h3 className="text-xl font-display font-bold uppercase mb-6 flex items-center gap-2"><i data-lucide="clock" className="w-5 h-5 text-hardware-orange"></i> Horaires d'ouverture</h3> 
+                  <ul className="space-y-3 text-sm"> 
+                    <li className="flex justify-between border-b border-white/10 pb-2"><span className="text-gray-300">Lundi - Vendredi</span><span className="font-semibold">07:30 - 19:00</span></li> 
+                    <li className="flex justify-between border-b border-white/10 pb-2"><span className="text-gray-300">Samedi</span><span className="font-semibold">08:00 - 18:00</span></li> 
+                    <li className="flex justify-between text-gray-500 pb2"><span>Dimanche</span><span>Fermé</span></li> 
+                  </ul> 
+                </div> 
+                <div className="bg-white p-8 border border-gray-200"> 
+                  <h3 className="text-xl font-display font-bold uppercase mb-6 text-hardware-black">Nos Coordonnées</h3> 
+                  <ul className="space-y-6 text-sm text-gray-600"> 
+                    <li className="flex items-start gap-4"><i data-lucide="map-pin" className="w-5 h-5 text-hardware-orange shrink-0 mt-0.5"></i><div><strong className="block text-hardware-black uppercase mb-1">Adresse</strong>Yaoundé, Cameroun</div></li> 
+                    <li className="flex items-start gap-4"><i data-lucide="phone" className="w-5 h-5 texthardware-orange shrink-0 mt-0.5"></i><div><strong className="block text-hardware-black uppercase mb-1">Téléphone</strong>652557791</div></li> 
+                    <li className="flex items-start gap-4"><i data-lucide="mail" className="w-5 h-5 texthardware-orange shrink-0 mt-0.5"></i><div><strong className="block text-hardware-black uppercase mb-1">Email</strong>contact@socoicam.cm</div></li> 
+                  </ul> 
+                </div> 
+              </div> 
+            </div> 
+          </div> 
+        </section> 
+      </div> 
+    ); 
+ 
+    // ======================== 
+    // App Component     // ======================== 
+    const App = () => { 
+      // Refresh lucide icons whenever the route changes       const { pathname } = useLocation(); 
+      useEffect(() => {         if (window.lucide) {           window.lucide.createIcons(); 
+        } 
+      }, [pathname]); 
+ 
+      return ( 
+        <CartProvider> 
+          <HashRouter> 
+            <ScrollToTop /> 
+            <div className="flex flex-col min-h-screen"> 
+              <Navbar /> 
+              <CartDrawer /> 
+              <main className="flex-grow"> 
+                <Routes> 
+                  <Route path="/" element={<Home />} /> 
+                  <Route path="/boutique" element={<Store />} /> 
+                  <Route path="/panier" element={<Cart />} /> 
+                  <Route path="/caisse" element={<Checkout />} /> <Route path="/services" element={<Services />} /> 
+                  <Route path="/contact" element={<Contact />} /> 
+                </Routes> 
+              </main> 
+              <Footer /> 
+            </div> 
+          </HashRouter> 
+        </CartProvider> 
+      ); 
+    }; 
+ 
+    // Mount the app     const container = document.getElementById('root');     const root = createRoot(container);     root.render(<App />); 
+  </script> 
+</body> 
+</html> 
