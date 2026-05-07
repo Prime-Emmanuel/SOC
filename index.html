@@ -29,7 +29,7 @@
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Base styles mirroring the original CSS -->
+  <!-- Base styles -->
   <style>
     body {
       font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -39,30 +39,23 @@
     h1, h2, h3, h4, h5, h6 {
       font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     }
-    /* Simple custom scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-    /* Ensure the root element takes at least full height */
     #root { min-height: 100vh; }
   </style>
 </head>
 <body class="bg-hardware-gray text-hardware-black antialiased">
   <div id="root"></div>
 
-  <!-- Using React 17 UMD builds to avoid React 18 createRoot issues -->
+  <!-- React 17 stable UMD -->
   <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-  <!-- React Router v5 for compatibility with React 17 -->
-  <script src="https://unpkg.com/react-router-dom@5/umd/react-router-dom.js"></script>
-  <!-- Babel standalone for JSX transpilation -->
+  <!-- React Router DOM v6 UMD (supports HashRouter) -->
+  <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js"></script>
+  <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Main application script -->
   <script type="text/babel" data-presets="react">
     const { useEffect, useState, createContext, useContext, useMemo } = React;
-    const { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
-    const { motion } = window.framerMotion || { motion: { div: 'div', button: 'button' } };
+    const { HashRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
 
     // ========================
     // Cart Context
@@ -110,7 +103,8 @@
       return (
         <CartContext.Provider value={{
           items, addToCart, updateQuantity, removeFromCart, clearCart,
-          cartTotal, isCartOpen, openCart, closeCart, itemsCount: items.reduce((count, item) => count + item.quantity, 0)
+          cartTotal, isCartOpen, openCart, closeCart,
+          itemsCount: items.reduce((count, item) => count + item.quantity, 0)
         }}>
           {children}
         </CartContext.Provider>
@@ -154,23 +148,16 @@
               </div>
 
               <div className="flex items-center gap-4">
-                <button
-                  onClick={openCart}
-                  className="relative p-2 hover:bg-white/10 rounded-full transition-colors"
-                  aria-label="Panier"
-                >
+                <button onClick={openCart} className="relative p-2 hover:bg-white/10 rounded-full" aria-label="Panier">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                   {itemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-hardware-orange text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                      {itemsCount}
-                    </span>
+                    <span className="absolute -top-1 -right-1 bg-hardware-orange text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">{itemsCount}</span>
                   )}
                 </button>
-                <button
-                  className="md:hidden p-2 hover:bg-white/10 rounded-full"
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{mobileOpen ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>}</svg>
+                <button className="md:hidden p-2 hover:bg-white/10 rounded-full" onClick={() => setMobileOpen(!mobileOpen)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {mobileOpen ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>}
+                  </svg>
                 </button>
               </div>
             </div>
@@ -189,24 +176,11 @@
     };
 
     const NavLink = ({ to, active, children }) => (
-      <Link
-        to={to}
-        className={`text-sm font-bold uppercase tracking-wider px-2 py-1 border-b-2 transition-colors ${
-          active ? 'border-hardware-orange text-white' : 'border-transparent text-gray-300 hover:text-white'
-        }`}
-      >
-        {children}
-      </Link>
+      <Link to={to} className={`text-sm font-bold uppercase tracking-wider px-2 py-1 border-b-2 transition-colors ${active ? 'border-hardware-orange text-white' : 'border-transparent text-gray-300 hover:text-white'}`}>{children}</Link>
     );
 
     const MobileNavLink = ({ to, onClick, children }) => (
-      <Link
-        to={to}
-        onClick={onClick}
-        className="block px-4 py-3 text-gray-300 hover:bg-white/5 rounded-lg font-semibold uppercase tracking-wide"
-      >
-        {children}
-      </Link>
+      <Link to={to} onClick={onClick} className="block px-4 py-3 text-gray-300 hover:bg-white/5 rounded-lg font-semibold uppercase tracking-wide">{children}</Link>
     );
 
     // ========================
@@ -222,9 +196,9 @@
           <div>
             <h4 className="font-display font-bold text-white text-lg mb-4 uppercase">Liens rapides</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/boutique" className="hover:text-hardware-orange transition-colors">Boutique</Link></li>
-              <li><Link to="/services" className="hover:text-hardware-orange transition-colors">Nos services</Link></li>
-              <li><Link to="/contact" className="hover:text-hardware-orange transition-colors">Contact</Link></li>
+              <li><Link to="/boutique" className="hover:text-hardware-orange">Boutique</Link></li>
+              <li><Link to="/services" className="hover:text-hardware-orange">Nos services</Link></li>
+              <li><Link to="/contact" className="hover:text-hardware-orange">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -236,9 +210,7 @@
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-white/10 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} SOCOICAM. Tous droits réservés.
-        </div>
+        <div className="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-white/10 text-center text-xs text-gray-500">© {new Date().getFullYear()} SOCOICAM. Tous droits réservés.</div>
       </footer>
     );
 
@@ -251,22 +223,12 @@
 
       return (
         <>
-          {isCartOpen && (
-            <div
-              className="fixed inset-0 bg-black/50 z-50 transition-opacity"
-              onClick={closeCart}
-            ></div>
-          )}
-          <div
-            className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}
-          >
+          {isCartOpen && <div className="fixed inset-0 bg-black/50 z-50 transition-opacity" onClick={closeCart}></div>}
+          <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-2xl font-display font-bold uppercase">Votre panier</h2>
-              <button onClick={closeCart} className="p-2 hover:bg-gray-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+              <button onClick={closeCart} className="p-2 hover:bg-gray-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
-
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {items.length === 0 ? (
                 <div className="text-center text-gray-500 mt-20">
@@ -282,39 +244,22 @@
                       <p className="text-xs text-gray-500">{item.ref}</p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center border">
-                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:bg-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                          </button>
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
                           <span className="w-8 text-center text-sm">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:bg-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                          </button>
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
                         </div>
-                        <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
+                        <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                       </div>
                     </div>
-                    <div className="font-bold text-sm text-hardware-orange">
-                      {(item.price * item.quantity).toLocaleString('fr-FR')} FCFA
-                    </div>
+                    <div className="font-bold text-sm text-hardware-orange">{(item.price * item.quantity).toLocaleString('fr-FR')} FCFA</div>
                   </div>
                 ))
               )}
             </div>
-
             {items.length > 0 && (
               <div className="p-6 border-t">
-                <div className="flex justify-between mb-4">
-                  <span className="font-bold uppercase">Total</span>
-                  <span className="font-display font-bold text-xl">{cartTotal.toLocaleString('fr-FR')} FCFA</span>
-                </div>
-                <button
-                  onClick={() => { closeCart(); navigate('/panier'); }}
-                  className="w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase py-3 tracking-wider transition-colors"
-                >
-                  Voir le panier
-                </button>
+                <div className="flex justify-between mb-4"><span className="font-bold uppercase">Total</span><span className="font-display font-bold text-xl">{cartTotal.toLocaleString('fr-FR')} FCFA</span></div>
+                <button onClick={() => { closeCart(); navigate('/panier'); }} className="w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase py-3 tracking-wider transition-colors">Voir le panier</button>
               </div>
             )}
           </div>
@@ -332,25 +277,11 @@
           <section className="bg-hardware-black text-white py-20 md:py-28">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="max-w-3xl">
-                <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb-6">
-                  Votre <span className="text-hardware-orange">quincaillerie</span> de référence à Yaoundé
-                </h1>
-                <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-                  Outillage professionnel, matériaux de construction, visserie, services de découpe et reproduction de clés. Tout ce qu'il vous faut pour vos projets.
-                </p>
+                <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb-6">Votre <span className="text-hardware-orange">quincaillerie</span> de référence à Yaoundé</h1>
+                <p className="text-lg text-gray-300 mb-8 leading-relaxed">Outillage professionnel, matériaux de construction, visserie, services de découpe et reproduction de clés. Tout ce qu'il vous faut pour vos projets.</p>
                 <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => navigate('/boutique')}
-                    className="bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors"
-                  >
-                    Voir le catalogue
-                  </button>
-                  <button
-                    onClick={() => navigate('/contact')}
-                    className="border-2 border-hardware-orange text-hardware-orange hover:bg-hardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors"
-                  >
-                    Nous contacter
-                  </button>
+                  <button onClick={() => navigate('/boutique')} className="bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase px-8 py-4 tracking-widest">Voir le catalogue</button>
+                  <button onClick={() => navigate('/contact')} className="border-2 border-hardware-orange text-hardware-orange hover:bg-hardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest">Nous contacter</button>
                 </div>
               </div>
             </div>
@@ -358,27 +289,9 @@
 
           <section className="bg-hardware-slate text-white py-12">
             <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="flex items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                <div>
-                  <h3 className="font-display font-bold uppercase">Retrait en magasin</h3>
-                  <p className="text-sm text-gray-300">Commandez en ligne, récupérez sur place</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
-                <div>
-                  <h3 className="font-display font-bold uppercase">Découpe sur mesure</h3>
-                  <p className="text-sm text-gray-300">Bois, métal, plexiglas au millimètre</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                <div>
-                  <h3 className="font-display font-bold uppercase">Reproduction de clés</h3>
-                  <p className="text-sm text-gray-300">Service minute pour tous types de clés</p>
-                </div>
-              </div>
+              <div className="flex items-center gap-4"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div><h3 className="font-display font-bold uppercase">Retrait en magasin</h3><p className="text-sm text-gray-300">Commandez en ligne, récupérez sur place</p></div></div>
+              <div className="flex items-center gap-4"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg><div><h3 className="font-display font-bold uppercase">Découpe sur mesure</h3><p className="text-sm text-gray-300">Bois, métal, plexiglas</p></div></div>
+              <div className="flex items-center gap-4"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg><div><h3 className="font-display font-bold uppercase">Reproduction de clés</h3><p className="text-sm text-gray-300">Service minute</p></div></div>
             </div>
           </section>
 
@@ -387,12 +300,8 @@
               <h2 className="text-3xl font-display font-bold uppercase mb-12 text-center">Nos rayons phares</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {['Électroportatif', 'Outillage à main', 'Visserie & Fixation', 'Matériaux'].map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => navigate('/boutique')}
-                    className="bg-white p-6 border border-gray-200 hover:shadow-md transition-shadow group"
-                  >
-                    <div className="text-2xl font-display font-bold uppercase mb-2 group-hover:text-hardware-orange transition-colors">{cat}</div>
+                  <button key={cat} onClick={() => navigate('/boutique')} className="bg-white p-6 border border-gray-200 hover:shadow-md transition-shadow group">
+                    <div className="text-2xl font-display font-bold uppercase mb-2 group-hover:text-hardware-orange">{cat}</div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Explorer →</p>
                   </button>
                 ))}
@@ -404,7 +313,7 @@
     };
 
     // ========================
-    // Store Page (adapted from provided code)
+    // Store Page
     // ========================
     const MOCK_PRODUCTS = [
       { id: 1, name: "Perceuse visseuse 18V XR", category: "Électroportatif", brand: "DeWalt", ref: "DCD791D2-QW", price: 125000, image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400&h=300", isNew: true },
@@ -433,78 +342,51 @@
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-12">
               <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight mb-4">Catalogue Produits</h1>
-              <p className="text-gray-600 max-w-2xl">Retrouvez ici un aperçu de nos références disponibles en magasin. Ajoutez-les à votre panier pour commander.</p>
+              <p className="text-gray-600 max-w-2xl">Retrouvez ici un aperçu de nos références disponibles en magasin.</p>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 items-start">
               <aside className="w-full lg:w-64 shrink-0 space-y-8">
                 <div className="bg-white p-6 border border-gray-200">
-                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Recherche
-                  </h3>
-                  <input
-                    type="text"
-                    placeholder="Réf. ou nom..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full border border-gray-300 p-3 text-sm focus:outline-none focus:border-hardware-orange font-mono"
-                  />
+                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Recherche</h3>
+                  <input type="text" placeholder="Réf. ou nom..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border border-gray-300 p-3 text-sm focus:outline-none focus:border-hardware-orange font-mono" />
                 </div>
                 <div className="bg-white p-6 border border-gray-200">
-                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Catégories
-                  </h3>
+                  <h3 className="font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Catégories</h3>
                   <ul className="space-y-2">
                     {CATEGORIES.map(cat => (
-                      <li key={cat}>
-                        <button
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`text-sm w-full text-left py-2 px-3 border-l-2 transition-colors ${
-                            selectedCategory === cat
-                              ? 'border-hardware-orange bg-orange-50 font-semibold text-hardware-orange'
-                              : 'border-transparent hover:bg-gray-50 text-gray-600'
-                          }`}
-                        >{cat}</button>
-                      </li>
+                      <li key={cat}><button onClick={() => setSelectedCategory(cat)} className={`text-sm w-full text-left py-2 px-3 border-l-2 transition-colors ${selectedCategory === cat ? 'border-hardware-orange bg-orange-50 font-semibold text-hardware-orange' : 'border-transparent hover:bg-gray-50 text-gray-600'}`}>{cat}</button></li>
                     ))}
                   </ul>
                 </div>
                 <div className="bg-hardware-slate text-white p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  </div>
+                  <div className="absolute top-0 right-0 p-4 opacity-10"><svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
                   <h3 className="font-display font-bold uppercase mb-2 relative z-10">Assistance</h3>
                   <p className="text-gray-300 text-sm mb-4 relative z-10">Besoin de conseil ? Appelez-nous au 652557791.</p>
-                  <Link to="/contact" className="inline-block bg-hardware-orange hover:bg-hardware-orange-hover text-white text-sm font-bold uppercase px-4 py-2 relative z-10 transition-colors">Nous contacter</Link>
+                  <Link to="/contact" className="inline-block bg-hardware-orange hover:bg-hardware-orange-hover text-white text-sm font-bold uppercase px-4 py-2 relative z-10">Nous contacter</Link>
                 </div>
               </aside>
 
               <main className="flex-1 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filtered.length > 0 ? (
-                    filtered.map(product => (
-                      <div key={product.id} className="bg-white group overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative">
-                        {product.isNew && (
-                          <span className="absolute top-4 right-4 z-10 bg-hardware-orange text-white text-[10px] uppercase font-bold px-2 py-1">Nouveau</span>
-                        )}
-                        <div className="relative h-48 overflow-hidden bg-gray-100 p-4 flex items-center justify-center">
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute top-4 left-4 bg-hardware-black/80 text-white text-xs font-bold uppercase tracking-wider px-2 py-1">{product.brand}</div>
-                        </div>
-                        <div className="p-5 flex flex-col flex-grow">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{product.category}</p>
-                          <h4 className="font-bold text-hardware-black group-hover:text-hardware-orange transition-colors mb-2">{product.name}</h4>
-                          <p className="font-mono text-xs text-gray-500 mb-4">Réf: {product.ref}</p>
-                          <div className="mt-auto flex items-end justify-between">
-                            <div className="font-display font-bold text-xl">{product.price.toLocaleString('fr-FR')} FCFA</div>
-                            <button onClick={() => addToCart(product)} className="bg-hardware-orange hover:bg-hardware-orange-hover text-white p-3 rounded-sm transition-colors">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                            </button>
-                          </div>
+                  {filtered.length > 0 ? filtered.map(product => (
+                    <div key={product.id} className="bg-white group overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative">
+                      {product.isNew && <span className="absolute top-4 right-4 z-10 bg-hardware-orange text-white text-[10px] uppercase font-bold px-2 py-1">Nouveau</span>}
+                      <div className="relative h-48 overflow-hidden bg-gray-100 p-4 flex items-center justify-center">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-4 left-4 bg-hardware-black/80 text-white text-xs font-bold uppercase tracking-wider px-2 py-1">{product.brand}</div>
+                      </div>
+                      <div className="p-5 flex flex-col flex-grow">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{product.category}</p>
+                        <h4 className="font-bold text-hardware-black group-hover:text-hardware-orange transition-colors mb-2">{product.name}</h4>
+                        <p className="font-mono text-xs text-gray-500 mb-4">Réf: {product.ref}</p>
+                        <div className="mt-auto flex items-end justify-between">
+                          <div className="font-display font-bold text-xl">{product.price.toLocaleString('fr-FR')} FCFA</div>
+                          <button onClick={() => addToCart(product)} className="bg-hardware-orange hover:bg-hardware-orange-hover text-white p-3 rounded-sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
                         </div>
                       </div>
-                    ))
-                  ) : (
+                    </div>
+                  )) : (
                     <div className="col-span-full bg-white p-12 text-center border border-gray-200">
                       <p className="text-gray-500 text-lg">Aucun article trouvé.</p>
                       <button onClick={() => { setSearchTerm(''); setSelectedCategory('Tous'); }} className="mt-4 text-hardware-orange font-semibold hover:underline">Réinitialiser les filtres</button>
@@ -519,7 +401,7 @@
     };
 
     // ========================
-    // Services Page (adapted from provided code)
+    // Services Page
     // ========================
     const SERVICES = [
       { id: 1, title: "Découpe sur mesure", description: "Bois, panneaux, MDF, plexiglas et métal. Découpe au millimètre dans notre atelier.", icon: "ruler", features: ["Précision millimétrique", "Gain de temps", "Tous types de bois"], image: "https://images.unsplash.com/photo-1534354228-db62423ba213?auto=format&fit=crop&q=80&w=800&h=500" },
@@ -532,9 +414,7 @@
       <div className="bg-hardware-gray min-h-screen">
         <section className="bg-hardware-slate text-white py-20 border-b-8 border-hardware-orange">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb-6">
-              Bien plus qu'un <br/><span className="text-hardware-orange">simple magasin.</span>
-            </h1>
+            <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight mb-6">Bien plus qu'un <br/><span className="text-hardware-orange">simple magasin.</span></h1>
             <p className="text-xl text-gray-300 max-w-2xl font-light">Découvrez nos services en atelier pour faciliter vos chantiers.</p>
           </div>
         </section>
@@ -551,7 +431,6 @@
                       {service.icon === 'tool' && <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
                     </div>
                     <img src={service.image} alt={service.title} className="w-full h-full object-cover mix-blend-multiply opacity-80" />
-                    <div className="absolute inset-0 border border-black/10 pointer-events-none" />
                   </div>
                   <div className="absolute -top-6 -left-6 font-display font-bold text-8xl text-hardware-orange opacity-20 pointer-events-none">0{service.id}</div>
                 </div>
@@ -573,14 +452,14 @@
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="text-3xl font-display font-bold uppercase mb-6">Une demande spécifique ?</h2>
             <p className="text-gray-400 mb-8">Contactez-nous ou passez en magasin. Nos conseillers étudieront votre besoin.</p>
-            <Link to="/contact" className="inline-block border-2 border-hardware-orange text-hardware-orange hover:bg-hardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors">Nous contacter</Link>
+            <Link to="/contact" className="inline-block border-2 border-hardware-orange text-hardware-orange hover:bg-hardware-orange hover:text-white font-bold uppercase px-8 py-4 tracking-widest">Nous contacter</Link>
           </div>
         </section>
       </div>
     );
 
     // ========================
-    // Cart Page (adapted from provided code)
+    // Cart Page
     // ========================
     const Cart = () => {
       const { items, updateQuantity, removeFromCart, cartTotal } = useCart();
@@ -593,7 +472,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 mx-auto mb-6"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
               <h2 className="text-3xl font-display font-bold uppercase mb-4">Votre panier est vide</h2>
               <p className="text-gray-500 mb-8">Explorez notre catalogue pour trouver ce qu'il vous faut.</p>
-              <Link to="/boutique" className="inline-flex items-center gap-2 bg-hardware-orange text-white px-8 py-4 font-bold uppercase tracking-widest hover:bg-hardware-orange-hover transition-colors">Catalogue Produits</Link>
+              <Link to="/boutique" className="inline-flex items-center gap-2 bg-hardware-orange text-white px-8 py-4 font-bold uppercase tracking-widest hover:bg-hardware-orange-hover">Catalogue Produits</Link>
             </div>
           </div>
         );
@@ -603,18 +482,14 @@
         <div className="bg-hardware-gray min-h-screen py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-500 hover:text-hardware-orange transition-colors mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Continuer vos achats
-              </button>
+              <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-500 hover:text-hardware-orange mb-4"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Continuer vos achats</button>
               <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight">Votre Panier</h1>
             </div>
             <div className="flex flex-col lg:flex-row gap-12 items-start">
               <div className="w-full lg:flex-1 space-y-4">
                 {items.map(item => (
                   <div key={item.id} className="bg-white border border-gray-200 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                    <div className="w-24 h-24 shrink-0 bg-gray-100 flex items-center justify-center p-2 hidden sm:flex">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    </div>
+                    <div className="w-24 h-24 shrink-0 bg-gray-100 flex items-center justify-center p-2 hidden sm:flex"><img src={item.image} alt={item.name} className="w-full h-full object-cover"/></div>
                     <div className="flex-1">
                       <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{item.brand}</p>
                       <h3 className="font-bold text-lg text-hardware-black mb-1">{item.name}</h3>
@@ -637,15 +512,9 @@
               <aside className="w-full lg:w-[400px] shrink-0">
                 <div className="bg-hardware-black text-white p-8 sticky top-28">
                   <h3 className="text-2xl font-display font-bold uppercase mb-6 border-b border-white/20 pb-4">Résumé</h3>
-                  <div className="space-y-4 mb-8">
-                    <div className="flex justify-between text-gray-400"><span>Sous-total</span><span className="font-mono">{cartTotal.toLocaleString('fr-FR')} FCFA</span></div>
-                    <div className="flex justify-between text-gray-400"><span>Frais de livraison</span><span>Calculés à l'étape suivante</span></div>
-                  </div>
-                  <div className="flex justify-between items-end border-t border-white/20 pt-6 mb-8">
-                    <span className="font-bold uppercase tracking-wider">Total estimé</span>
-                    <span className="font-display font-bold text-3xl text-hardware-orange">{cartTotal.toLocaleString('fr-FR')} FCFA</span>
-                  </div>
-                  <Link to="/caisse" className="block w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white text-center font-bold uppercase py-5 tracking-widest transition-colors mb-4">Passer la commande</Link>
+                  <div className="space-y-4 mb-8"><div className="flex justify-between text-gray-400"><span>Sous-total</span><span className="font-mono">{cartTotal.toLocaleString('fr-FR')} FCFA</span></div><div className="flex justify-between text-gray-400"><span>Frais de livraison</span><span>Calculés à l'étape suivante</span></div></div>
+                  <div className="flex justify-between items-end border-t border-white/20 pt-6 mb-8"><span className="font-bold uppercase tracking-wider">Total estimé</span><span className="font-display font-bold text-3xl text-hardware-orange">{cartTotal.toLocaleString('fr-FR')} FCFA</span></div>
+                  <Link to="/caisse" className="block w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white text-center font-bold uppercase py-5 tracking-widest mb-4">Passer la commande</Link>
                   <p className="text-xs text-gray-500 text-center">Paiement sécurisé. Retrait en magasin possible.</p>
                 </div>
               </aside>
@@ -656,17 +525,14 @@
     };
 
     // ========================
-    // Checkout Page (adapted from provided code)
+    // Checkout Page
     // ========================
     const Checkout = () => {
       const { items, cartTotal, clearCart } = useCart();
       const navigate = useNavigate();
       const [success, setSuccess] = useState(false);
 
-      if (items.length === 0 && !success) {
-        navigate('/boutique');
-        return null;
-      }
+      if (items.length === 0 && !success) { navigate('/boutique'); return null; }
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -679,11 +545,9 @@
           <div className="bg-hardware-gray min-h-[80vh] flex items-center justify-center py-12 px-4">
             <div className="bg-white p-8 md:p-16 border border-gray-200 max-w-2xl text-center shadow-lg relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-2 bg-hardware-orange" />
-              <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
+              <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
               <h2 className="text-4xl font-display font-bold uppercase mb-4">Commande Validée !</h2>
-              <p className="text-gray-600 mb-8 text-lg">Merci pour votre commande. Un conseiller SOCOICAM vous contactera très prochainement pour finaliser la livraison et le paiement.</p>
+              <p className="text-gray-600 mb-8 text-lg">Merci pour votre commande. Un conseiller SOCOICAM vous contactera très prochainement.</p>
               <div className="bg-hardware-slate p-6 text-white mb-8 text-left">
                 <h3 className="font-bold uppercase tracking-wider mb-2">Prochaines Étapes</h3>
                 <ul className="space-y-2 text-sm text-gray-300">
@@ -692,7 +556,7 @@
                   <li>3. Paiement à la livraison ou retrait en magasin</li>
                 </ul>
               </div>
-              <Link to="/" className="inline-block bg-hardware-orange hover:bg-hardware-orange-hover text-white px-8 py-4 font-bold uppercase tracking-widest transition-colors">Retour à l'accueil</Link>
+              <Link to="/" className="inline-block bg-hardware-orange hover:bg-hardware-orange-hover text-white px-8 py-4 font-bold uppercase tracking-widest">Retour à l'accueil</Link>
             </div>
           </div>
         );
@@ -701,9 +565,7 @@
       return (
         <div className="bg-hardware-gray min-h-screen py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-12">
-              <h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight mb-4">Validation de Commande</h1>
-            </div>
+            <div className="mb-12"><h1 className="text-4xl md:text-5xl font-display font-bold text-hardware-black uppercase tracking-tight mb-4">Validation de Commande</h1></div>
             <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-12 items-start">
               <div className="w-full lg:flex-1 space-y-8">
                 <section className="bg-white p-6 md:p-8 border border-gray-200">
@@ -718,20 +580,8 @@
                 <section className="bg-white p-6 md:p-8 border border-gray-200">
                   <h2 className="text-2xl font-display font-bold uppercase mb-6 flex items-center gap-3"><span className="w-8 h-8 rounded-full bg-hardware-slate text-white flex items-center justify-center text-sm">2</span> Mise à disposition</h2>
                   <div className="grid gap-4">
-                    <label className="border-2 border-hardware-orange bg-orange-50 p-4 cursor-pointer flex items-start gap-4">
-                      <input type="radio" name="delivery" defaultChecked className="mt-1" />
-                      <div>
-                        <div className="font-bold uppercase text-sm mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Retrait au magasin</div>
-                        <p className="text-sm text-gray-600">Yaoundé, Cameroun. Gratuit et disponible dès validation du stock.</p>
-                      </div>
-                    </label>
-                    <label className="border border-gray-200 hover:border-gray-300 p-4 cursor-pointer flex items-start gap-4">
-                      <input type="radio" name="delivery" className="mt-1" disabled />
-                      <div>
-                        <div className="font-bold uppercase text-sm mb-1 text-gray-400 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Livraison à domicile (Sur devis uniquement)</div>
-                        <p className="text-sm text-gray-500">Nos conseillers vous contacteront pour estimer les frais.</p>
-                      </div>
-                    </label>
+                    <label className="border-2 border-hardware-orange bg-orange-50 p-4 cursor-pointer flex items-start gap-4"><input type="radio" name="delivery" defaultChecked className="mt-1" /><div><div className="font-bold uppercase text-sm mb-1 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-hardware-orange"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Retrait au magasin</div><p className="text-sm text-gray-600">Yaoundé, Cameroun. Gratuit.</p></div></label>
+                    <label className="border border-gray-200 hover:border-gray-300 p-4 cursor-pointer flex items-start gap-4"><input type="radio" name="delivery" className="mt-1" disabled /><div><div className="font-bold uppercase text-sm mb-1 text-gray-400 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Livraison à domicile (Sur devis)</div><p className="text-sm text-gray-500">Nos conseillers vous contacteront.</p></div></label>
                   </div>
                 </section>
               </div>
@@ -741,7 +591,7 @@
                   <div className="space-y-4 mb-8 max-h-64 overflow-y-auto pr-2">
                     {items.map(item => (
                       <div key={item.id} className="flex gap-4">
-                        <div className="w-16 h-16 bg-white p-1 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>
+                        <div className="w-16 h-16 bg-white p-1 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover"/></div>
                         <div className="flex-1">
                           <h4 className="text-sm font-bold truncate">{item.name}</h4>
                           <p className="text-xs text-gray-400 mb-1">Qté: {item.quantity}</p>
@@ -754,13 +604,8 @@
                     <span className="font-bold uppercase tracking-wider text-xl">Total À Payer</span>
                     <span className="font-display font-bold text-3xl text-hardware-orange">{cartTotal.toLocaleString('fr-FR')} FCFA</span>
                   </div>
-                  <button type="submit" className="flex items-center justify-center gap-2 w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white text-center font-bold uppercase py-5 tracking-widest transition-colors mb-4">
-                    Confirmer la commande <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  </button>
-                  <div className="flex items-start gap-3 text-xs text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <p>Vos informations sont sécurisées. Le paiement sera effectué au moment du retrait de la marchandise.</p>
-                  </div>
+                  <button type="submit" className="flex items-center justify-center gap-2 w-full bg-hardware-orange hover:bg-hardware-orange-hover text-white font-bold uppercase py-5 tracking-widest mb-4">Confirmer la commande <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  <div className="flex items-start gap-3 text-xs text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><p>Vos informations sont sécurisées. Le paiement sera effectué au moment du retrait.</p></div>
                 </div>
               </aside>
             </form>
@@ -770,14 +615,14 @@
     };
 
     // ========================
-    // Contact Page (adapted from provided code)
+    // Contact Page
     // ========================
     const Contact = () => (
       <div className="bg-hardware-gray min-h-screen">
         <section className="bg-hardware-black text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl md:text-5xl font-display font-bold uppercase tracking-tight mb-4">Demander un devis <br className="hidden md:block"/> ou un renseignement</h1>
-            <p className="text-gray-400 max-w-xl">Notre équipe est à votre disposition pour vous conseiller et répondre à vos demandes de prix sur notre matériel.</p>
+            <p className="text-gray-400 max-w-xl">Notre équipe est à votre disposition pour vous conseiller et répondre à vos demandes.</p>
           </div>
         </section>
         <section className="py-16">
@@ -787,21 +632,21 @@
                 <h2 className="text-2xl font-display font-bold uppercase mb-8 border-b-2 border-hardware-orange inline-block pb-2">Envoyer un message</h2>
                 <form className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2"><label htmlFor="firstname" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Prénom</label><input type="text" id="firstname" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Jean" /></div>
-                    <div className="space-y-2"><label htmlFor="lastname" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Nom</label><input type="text" id="lastname" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Dupont" /></div>
+                    <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Prénom</label><input type="text" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Jean" /></div>
+                    <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Nom</label><input type="text" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Dupont" /></div>
                   </div>
-                  <div className="space-y-2"><label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Email</label><input type="email" id="email" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="jean.dupont@email.com" /></div>
+                  <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Email</label><input type="email" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="jean.dupont@email.com" /></div>
                   <div className="space-y-2">
-                    <label htmlFor="subject" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Sujet</label>
-                    <select id="subject" className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Sujet</label>
+                    <select className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange">
                       <option>Demande de devis</option>
                       <option>Disponibilité d'un produit (Stock)</option>
                       <option>Informations sur un service</option>
                       <option>Autre</option>
                     </select>
                   </div>
-                  <div className="space-y-2"><label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-gray-500">Message</label><textarea id="message" rows={5} className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Précisez votre demande... (ex: réf produit, quantités)"></textarea></div>
-                  <button type="button" onClick={(e) => { e.preventDefault(); alert("Ceci est un site vitrine / maquette. Le message n'est pas envoyé réel."); }} className="bg-hardware-black hover:bg-hardware-orange text-white font-bold uppercase px-8 py-4 tracking-widest transition-colors w-full sm:w-auto">Envoyer ma demande</button>
+                  <div className="space-y-2"><label className="block text-xs font-bold uppercase tracking-wider text-gray-500">Message</label><textarea rows={5} className="w-full border border-gray-300 p-3 bg-gray-50 focus:bg-white focus:outline-none focus:border-hardware-orange" placeholder="Précisez votre demande..."></textarea></div>
+                  <button type="button" onClick={(e) => { e.preventDefault(); alert("Ceci est un site vitrine / maquette. Le message n'est pas envoyé réel."); }} className="bg-hardware-black hover:bg-hardware-orange text-white font-bold uppercase px-8 py-4 tracking-widest w-full sm:w-auto">Envoyer ma demande</button>
                 </form>
               </div>
               <div className="lg:col-span-2 space-y-8">
@@ -831,32 +676,30 @@
     // ========================
     // App Component
     // ========================
-    const App = () => {
-      return (
-        <CartProvider>
-          <BrowserRouter>
-            <ScrollToTop />
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <CartDrawer />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/boutique" element={<Store />} />
-                  <Route path="/panier" element={<Cart />} />
-                  <Route path="/caisse" element={<Checkout />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/contact" element={<Contact />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          </BrowserRouter>
-        </CartProvider>
-      );
-    };
+    const App = () => (
+      <CartProvider>
+        <HashRouter>
+          <ScrollToTop />
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <CartDrawer />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/boutique" element={<Store />} />
+                <Route path="/panier" element={<Cart />} />
+                <Route path="/caisse" element={<Checkout />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/contact" element={<Contact />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </HashRouter>
+      </CartProvider>
+    );
 
-    // Render the app using React 17 API
+    // Render using React 17 API
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
